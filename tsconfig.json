@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "module": "system",
+    // "module": "es5",
+    "target": "es5",
     "noImplicitAny": true,
-    "removeComments": true,
+    // "removeComments": true,
     "preserveConstEnums": true,
+    "allowJs": true
     // "outFile": "../../built/local/tsc.js",
     // "sourceMap": true
   },
-  //   "include": ["src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "build", "config"]
 }
