@@ -2,10 +2,12 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:11:15
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-26 15:28:41
+ * @Last Modified time: 2021-01-26 17:18:00
  */
 
-export default {
+const toolConfig = {
   incloudDri: ["src"],
-  ignoreDir: ["media"],
+  ignoreDir: ["media", "util"],
 };
+
+export default toolConfig;
