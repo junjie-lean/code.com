@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:09:42
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-27 10:31:55
+ * @Last Modified time: 2021-01-27 17:37:31
  */
 
 /**
@@ -36,34 +36,30 @@ async function recursionDisposeDir(_path: string) {
   const currentStats: any = await fsPromise.stat(_path);
   const currentPathIsDir: boolean = currentStats.isDirectory();
 
+  let disposeResult: any = "initial";
+
   if (currentPathIsDir) {
     //if current path is dir , check it's in ignore list?
-
     const currentDirIsInIgnoreList: boolean = ignoreDir.some((item) => {
       // const currentDirName = _path.slice(_path.lastIndexOf("\\") + 1);
       const currentDirName = _path.slice(_path.lastIndexOf(path.sep) + 1);
-      return item === currentDirName || item === "DS_Store";
+      return item === currentDirName;
     });
 
     // console.log( _path.slice(_path.lastIndexOf("\\") + 1), '\n',_path);
-    if (currentDirIsInIgnoreList) {
-      // current dir is in ignore list , continue
-      // console.log("do not dispose this path:", _path);
-      // console.log("ignore dir:", _path);
-    } else {
+    if (!currentDirIsInIgnoreList) {
       let lsDir = await fsPromise.readdir(_path);
-
-      lsDir.map((item) => {
+      lsDir.map(async (item) => {
         let childrenPath = path.resolve(_path, item);
-        recursionDisposeDir(childrenPath);
+        await recursionDisposeDir(childrenPath);
       });
     }
   } else {
-    let res = await readFileInfo(_path);
-    fileStatisticsList.push(res);
-    // console.log(res);
+    let fileInfo = await readFileInfo(_path);
+    disposeResult = fileInfo;
   }
-  return fileStatisticsList;
+
+  return disposeResult;
 }
 
 /**
@@ -118,12 +114,8 @@ const readFileInfo = async function (_path: string) {
 };
 
 (async () => {
-  // includeDir.map(function (item: string): any {
-  //   recursionDisposeDir(item);
-  // });
+  includeDir.map(async (item) => {
+    let disRes = await recursionDisposeDir(item);
 
-  for (let item of includeDir) {
-    await recursionDisposeDir(item);
-    console.log(fileStatisticsList);
-  }
+  });
 })();
