@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:09:42
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-26 23:55:05
+ * @Last Modified time: 2021-01-27 10:31:55
  */
 
 /**
@@ -24,6 +24,7 @@ const authorList: Array<any> = [];
 
 //code file header list
 const fileStatisticsList: Array<any> = [];
+
 /**
  * @description  recursion dispose dir,
  * if target is Directory, recursion dispose it,
@@ -32,22 +33,23 @@ const fileStatisticsList: Array<any> = [];
  * @returns null
  */
 async function recursionDisposeDir(_path: string) {
-  let currentStats: any = await fsPromise.stat(_path);
-
+  const currentStats: any = await fsPromise.stat(_path);
   const currentPathIsDir: boolean = currentStats.isDirectory();
 
   if (currentPathIsDir) {
     //if current path is dir , check it's in ignore list?
 
     const currentDirIsInIgnoreList: boolean = ignoreDir.some((item) => {
-      const currentDirName = _path.slice(_path.lastIndexOf("\\") + 1);
-      return item === currentDirName;
+      // const currentDirName = _path.slice(_path.lastIndexOf("\\") + 1);
+      const currentDirName = _path.slice(_path.lastIndexOf(path.sep) + 1);
+      return item === currentDirName || item === "DS_Store";
     });
 
     // console.log( _path.slice(_path.lastIndexOf("\\") + 1), '\n',_path);
     if (currentDirIsInIgnoreList) {
-      //current dir is in ignore list , continue
+      // current dir is in ignore list , continue
       // console.log("do not dispose this path:", _path);
+      // console.log("ignore dir:", _path);
     } else {
       let lsDir = await fsPromise.readdir(_path);
 
@@ -57,8 +59,11 @@ async function recursionDisposeDir(_path: string) {
       });
     }
   } else {
-    await readFileInfo(_path);
+    let res = await readFileInfo(_path);
+    fileStatisticsList.push(res);
+    // console.log(res);
   }
+  return fileStatisticsList;
 }
 
 /**
@@ -100,19 +105,25 @@ const readFileInfo = async function (_path: string) {
 
   let fileInfo = {
     fileName: path.basename(_path),
+    filePath: _path,
     fileSize: fileStat.size,
     fileSizeUtil: "byte",
-    // fileHeader,
     fileAuthor,
     fileLastModify,
+    isAuthorLastModify: fileAuthor === fileLastModify,
   };
   // console.log(fileInfo);
-  authorList.push(fileInfo);
+  // fileStatisticsList.push(fileInfo);
+  return fileInfo;
 };
 
 (async () => {
-  includeDir.map(function (item: string): any {
-    recursionDisposeDir(item);
-  });
-  // console.log("result : ", authorList);
+  // includeDir.map(function (item: string): any {
+  //   recursionDisposeDir(item);
+  // });
+
+  for (let item of includeDir) {
+    await recursionDisposeDir(item);
+    console.log(fileStatisticsList);
+  }
 })();
