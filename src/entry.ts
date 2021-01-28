@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:09:42
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-27 17:37:31
+ * @Last Modified time: 2021-01-28 13:37:56
  */
 
 /**
@@ -18,7 +18,6 @@ import toolConfig from "./toolConfig";
 
 const { authorKey, modifyKey, includeDir, ignoreDir } = toolConfig;
 
-//root dir
 //code author list
 const authorList: Array<any> = [];
 
@@ -30,13 +29,11 @@ const fileStatisticsList: Array<any> = [];
  * if target is Directory, recursion dispose it,
  * or if target is file, call readSize( file path ) function
  * @param { String }  _path
- * @returns null
+ * @returns Promise
  */
 async function recursionDisposeDir(_path: string) {
   const currentStats: any = await fsPromise.stat(_path);
   const currentPathIsDir: boolean = currentStats.isDirectory();
-
-  let disposeResult: any = "initial";
 
   if (currentPathIsDir) {
     //if current path is dir , check it's in ignore list?
@@ -56,19 +53,20 @@ async function recursionDisposeDir(_path: string) {
     }
   } else {
     let fileInfo = await readFileInfo(_path);
-    disposeResult = fileInfo;
+    fileStatisticsList.push(fileInfo);
+    console.log(1);
   }
-
-  return disposeResult;
+  console.log(2);
+  return fileStatisticsList;
 }
 
 /**
  * @description set authorList value
- * @param { String } _path
+ * @param { String } _path,current path must be a file
  * @returns file info object
  */
 const readFileInfo = async function (_path: string) {
-  let fileContent: string = await (await fsPromise.readFile(_path)).toString();
+  let fileContent: string = (await fsPromise.readFile(_path)).toString();
   let fileStat: any = await fsPromise.stat(_path);
 
   let fileHeader: Array<string> = fileContent
@@ -108,14 +106,8 @@ const readFileInfo = async function (_path: string) {
     fileLastModify,
     isAuthorLastModify: fileAuthor === fileLastModify,
   };
-  // console.log(fileInfo);
-  // fileStatisticsList.push(fileInfo);
   return fileInfo;
 };
 
-(async () => {
-  includeDir.map(async (item) => {
-    let disRes = await recursionDisposeDir(item);
+recursionDisposeDir("target").then((res) => console.log(res));
 
-  });
-})();
