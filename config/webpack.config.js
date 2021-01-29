@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 14:45:38
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-26 16:55:06
+ * @Last Modified time: 2021-01-29 13:03:03
  */
 
 /**
@@ -14,6 +14,7 @@ const path = require("path");
 
 module.exports = {
   mode: "production",
+  target: "node",
   // devtool: "inline-source-map",
   entry: path.resolve(__dirname, "../src", "entry.ts"),
   output: {
@@ -35,7 +36,7 @@ module.exports = {
                 "@babel/preset-env",
                 {
                   useBuiltIns: "usage",
-                  loose: true,
+                  // loose: true,
                   targets: {
                     node: "current",
                   },

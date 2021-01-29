@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:09:42
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-28 16:26:27
+ * @Last Modified time: 2021-01-29 12:59:30
  */
 
 /**
@@ -157,12 +157,12 @@ const readFileInfo = async function (_path: string) {
     authorCountArr = authorCountArr.map((item) => {
       return {
         ...item,
-        sizePercent: Math.round((item.size / sizeTotal) * 100) + "%",
+        sizePercent: Math.round((item.size / sizeTotal) * 10000) / 100 + "%",
         sizeByCreatePercent:
-          Math.round((item.sizeByCreate / sizeByCreateTotal) * 100) + "%",
+          Math.round((item.sizeByCreate / sizeByCreateTotal) * 10000) / 100 +
+          "%",
       };
     });
 
-    console.log(authorCountArr);
   }, 3000);
 })();
