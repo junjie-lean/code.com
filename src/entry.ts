@@ -2,7 +2,7 @@
  * @Author: junjie.lean
  * @Date: 2021-01-26 15:09:42
  * @Last Modified by: junjie.lean
- * @Last Modified time: 2021-01-28 13:37:56
+ * @Last Modified time: 2021-01-28 16:26:27
  */
 
 /**
@@ -13,7 +13,7 @@
 
 import { promises as fsPromise } from "fs";
 import * as path from "path";
-
+import * as lodash from "lodash";
 import toolConfig from "./toolConfig";
 
 const { authorKey, modifyKey, includeDir, ignoreDir } = toolConfig;
@@ -45,19 +45,20 @@ async function recursionDisposeDir(_path: string) {
 
     // console.log( _path.slice(_path.lastIndexOf("\\") + 1), '\n',_path);
     if (!currentDirIsInIgnoreList) {
-      let lsDir = await fsPromise.readdir(_path);
-      lsDir.map(async (item) => {
+      let lsDir: Array<string> = await fsPromise.readdir(_path);
+      lsDir.map((item) => {
+        if (item === ".DS_Store") {
+          return false;
+        }
         let childrenPath = path.resolve(_path, item);
-        await recursionDisposeDir(childrenPath);
+        recursionDisposeDir(childrenPath);
       });
     }
   } else {
     let fileInfo = await readFileInfo(_path);
     fileStatisticsList.push(fileInfo);
-    console.log(1);
+    //处理fileinfo
   }
-  console.log(2);
-  return fileStatisticsList;
 }
 
 /**
@@ -109,5 +110,59 @@ const readFileInfo = async function (_path: string) {
   return fileInfo;
 };
 
-recursionDisposeDir("target").then((res) => console.log(res));
+(async () => {
+  await recursionDisposeDir("target");
+  // console.log("fileStatisticsList1 : ", fileStatisticsList);
+  setTimeout(() => {
+    //group  statistic data by author name:
+    let groupList = lodash.groupBy(fileStatisticsList, "fileAuthor");
+    Reflect.ownKeys(groupList).map((item) => {
+      if (item !== "") {
+        authorList.push(item);
+      }
+    });
 
+    //reduce all authors code data
+    let authorCountArr: Array<any> = [];
+
+    authorList.map((item) => {
+      authorCountArr.push({
+        name: item,
+        countByCreate: groupList[item].length,
+        sizeByCreate: groupList[item]
+          // .filter((item) => item.isAuthorLastModify)
+          .reduce((t, c) => {
+            return t + c.fileSize;
+          }, 0),
+        conut: groupList[item].filter((item) => item.isAuthorLastModify).length,
+        size: groupList[item]
+          .filter((item) => item.isAuthorLastModify)
+          .reduce((t, c) => {
+            return t + c.fileSize;
+          }, 0),
+      });
+    });
+
+    let sizeTotal: number = 0;
+    let sizeByCreateTotal: number = 0;
+
+    sizeTotal = authorCountArr.reduce((total, current) => {
+      return total + current.size;
+    }, 0);
+
+    sizeByCreateTotal = authorCountArr.reduce((total, current) => {
+      return total + current.sizeByCreate;
+    }, 0);
+
+    authorCountArr = authorCountArr.map((item) => {
+      return {
+        ...item,
+        sizePercent: Math.round((item.size / sizeTotal) * 100) + "%",
+        sizeByCreatePercent:
+          Math.round((item.sizeByCreate / sizeByCreateTotal) * 100) + "%",
+      };
+    });
+
+    console.log(authorCountArr);
+  }, 3000);
+})();
